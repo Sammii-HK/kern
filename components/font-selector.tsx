@@ -10,13 +10,13 @@ interface FontSelectorProps {
 
 export function FontSelector({ selected, onChange }: FontSelectorProps) {
   return (
-    <div className="flex gap-1 p-1 bg-border/50 rounded-lg">
+    <div className="flex gap-1 p-1 bg-border/50 rounded-lg overflow-x-auto scrollbar-none">
       {fonts.map((font) => (
         <button
           key={font.name}
           onClick={() => onChange(font.name)}
           className={cn(
-            "px-3 py-1.5 text-sm rounded-md transition-all",
+            "px-3 py-1.5 text-sm rounded-md transition-all whitespace-nowrap flex-shrink-0",
             selected === font.name
               ? "bg-surface text-foreground shadow-sm font-medium"
               : "text-muted hover:text-foreground"
