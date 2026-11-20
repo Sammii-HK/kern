@@ -1,56 +1,65 @@
 "use client";
 
-import { type FontAxis } from "@/lib/fonts";
-import { motion, useSpring, useTransform } from "framer-motion";
-import { useEffect, useRef } from "react";
-
 interface AxisSliderProps {
-  axis: FontAxis;
+  tag: string;
+  name: string;
+  description?: string;
+  min: number;
+  max: number;
+  step: number;
   value: number;
-  onChange: (tag: string, value: number) => void;
+  onChange: (value: number) => void;
+  /** Optional control rendered beside the label, such as an "auto" toggle. */
+  aside?: React.ReactNode;
+  disabled?: boolean;
 }
 
-export function AxisSlider({ axis, value, onChange }: AxisSliderProps) {
-  const springValue = useSpring(value, { stiffness: 300, damping: 30 });
-  const displayValue = useTransform(springValue, (v) => Math.round(v));
-  const spanRef = useRef<HTMLSpanElement>(null);
+function format(n: number, step: number) {
+  const places = step >= 1 ? 0 : Math.min(3, Math.ceil(-Math.log10(step)));
+  return n.toFixed(places);
+}
 
-  useEffect(() => {
-    springValue.set(value);
-  }, [value, springValue]);
-
-  useEffect(() => {
-    const unsub = displayValue.on("change", (v) => {
-      if (spanRef.current) spanRef.current.textContent = String(v);
-    });
-    return unsub;
-  }, [displayValue]);
-
+export function AxisSlider({
+  tag,
+  name,
+  description,
+  min,
+  max,
+  step,
+  value,
+  onChange,
+  aside,
+  disabled,
+}: AxisSliderProps) {
+  const id = `axis-${tag}`;
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between text-xs">
-        <label className="text-muted uppercase tracking-wider font-medium">
-          {axis.name}
-          <span className="ml-1.5 text-foreground/40 normal-case tracking-normal">
-            {axis.tag}
-          </span>
+    <div className="flex flex-col gap-1.5" title={description}>
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <label htmlFor={id} className="text-muted uppercase tracking-wider font-medium truncate">
+          {name}
+          <span className="ml-1.5 text-foreground/40 normal-case tracking-normal font-mono">{tag}</span>
         </label>
-        <span ref={spanRef} className="tabular-nums font-medium text-foreground">
-          {value}
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          {aside}
+          <span className="tabular-nums font-medium text-foreground">
+            {disabled ? "auto" : format(value, step)}
+          </span>
+        </div>
       </div>
       <input
+        id={id}
         type="range"
-        min={axis.min}
-        max={axis.max}
-        step={axis.step}
+        min={min}
+        max={max}
+        step={step}
         value={value}
-        onChange={(e) => onChange(axis.tag, Number(e.target.value))}
-        className="w-full"
+        disabled={disabled}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full disabled:opacity-40"
       />
-      <div className="flex justify-between text-[10px] text-muted">
-        <span>{axis.min}</span>
-        <span>{axis.max}</span>
+      <div className="flex justify-between text-[10px] text-muted tabular-nums">
+        <span>{format(min, step)}</span>
+        <span>{format(max, step)}</span>
       </div>
     </div>
   );

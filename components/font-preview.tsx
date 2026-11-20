@@ -1,43 +1,35 @@
 "use client";
 
-import { type FontConfig, buildFontVariationSettings } from "@/lib/fonts";
+import type { RoleFont } from "@/hooks/use-role-fonts";
+import { SpringText } from "./spring-text";
 
 interface FontPreviewProps {
-  font: FontConfig;
-  axisValues: Record<string, number>;
+  font: Pick<RoleFont, "css" | "axes" | "weight" | "status">;
   fontSize?: number;
   textColour?: string;
   bgColour?: string;
+  text?: string;
 }
 
-export function FontPreview({
-  font,
-  axisValues,
-  fontSize = 48,
-  textColour,
-  bgColour,
-}: FontPreviewProps) {
-  const fvs = buildFontVariationSettings(font.axes, axisValues);
-
+/** Editable sample whose glyphs spring to new axis values. */
+export function FontPreview({ font, fontSize = 48, textColour, bgColour, text }: FontPreviewProps) {
   return (
-    <div
-      className="rounded-lg border border-border p-6 sm:p-8 min-h-[200px] transition-colors"
-      style={{ backgroundColor: bgColour }}
-    >
-      <div
+    <div className="rounded-lg border border-border p-6 sm:p-8 min-h-[200px]" style={{ backgroundColor: bgColour }}>
+      <SpringText
+        as="div"
+        axes={font.axes}
         contentEditable
-        suppressContentEditableWarning
-        data-placeholder="Type something..."
-        className="outline-none w-full break-words leading-[1.2] transition-[font-variation-settings] duration-200 ease-out"
+        className="outline-none w-full break-words leading-[1.2]"
         style={{
-          fontFamily: font.family,
-          fontVariationSettings: fvs,
+          fontFamily: font.css,
+          fontWeight: font.weight,
           fontSize: `${fontSize}px`,
           color: textColour,
+          opacity: font.status === "ready" ? 1 : 0.5,
         }}
       >
-        The quick brown fox jumps over the lazy dog
-      </div>
+        {text ?? "The quick brown fox jumps over the lazy dog"}
+      </SpringText>
     </div>
   );
 }

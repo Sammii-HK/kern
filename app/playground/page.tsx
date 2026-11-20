@@ -1,218 +1,134 @@
 "use client";
 
-import { Suspense, useState, useCallback } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import {
-  fonts,
-  getFontByName,
-  getDefaultAxisValues,
-  buildFontVariationSettings,
-} from "@/lib/fonts";
+import { useCatalogue } from "@/hooks/use-catalogue";
+import { useLab, useParam } from "@/hooks/use-lab";
+import { useRoleFonts } from "@/hooks/use-role-fonts";
+import { fvsString } from "@/lib/axes";
+import { ROLES, type Role } from "@/lib/lab-state";
 import { AxisPanel } from "@/components/axis-panel";
-import { FontSelector } from "@/components/font-selector";
 import { FontPreview } from "@/components/font-preview";
 import { OpticalSizeDemo } from "@/components/optical-size-demo";
 import { ComparisonView } from "@/components/comparison-view";
 import { CopyButton } from "@/components/copy-button";
 import { ColourPicker } from "@/components/colour-picker";
+import { FamilyPicker } from "@/components/family-picker";
 import { cn } from "@/lib/utils";
 
-type Mode = "single" | "compare";
+const LABEL: Record<Role, string> = { heading: "Heading", body: "Body", mono: "Mono" };
 
 export default function PlaygroundPage() {
-  return (
-    <Suspense fallback={<div className="p-8 text-muted">Loading playground...</div>}>
-      <PlaygroundContent />
-    </Suspense>
-  );
-}
+  const { state, setRoleAxis, resetRoleAxes, setRoleFamily } = useLab();
+  const { catalogue } = useCatalogue();
+  const roles = useRoleFonts(state);
+  const [roleParam, setRoleParam] = useParam("role", "heading");
+  const [mode, setMode] = useParam("mode", "single");
+  const [sizeParam, setSizeParam] = useParam("size", "72");
+  const [textColour, setTextColour] = useParam("color");
+  const [bgColour, setBgColour] = useParam("bg");
+  const role = (ROLES.includes(roleParam as Role) ? roleParam : "heading") as Role;
+  const rf = roles[role];
+  const fontSize = Number(sizeParam) || 72;
 
-function PlaygroundContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  const initialFont = getFontByName(searchParams.get("font") ?? "") ?? fonts[0];
-  const [selectedFont, setSelectedFont] = useState(initialFont);
-  const [mode, setMode] = useState<Mode>("single");
-  const [fontSize, setFontSize] = useState(
-    Number(searchParams.get("size")) || 48
-  );
-  const [textColour, setTextColour] = useState(
-    searchParams.get("color") ?? ""
-  );
-  const [bgColour, setBgColour] = useState(searchParams.get("bg") ?? "");
-
-  // Parse axis values from URL or use defaults
-  const parseInitialAxes = () => {
-    const defaults = getDefaultAxisValues(initialFont.axes);
-    for (const axis of initialFont.axes) {
-      const urlVal = searchParams.get(axis.tag);
-      if (urlVal) defaults[axis.tag] = Number(urlVal);
-    }
-    return defaults;
-  };
-
-  const [axisValues, setAxisValues] = useState(parseInitialAxes);
-
-  // Sync state to URL
-  const syncUrl = useCallback(
-    (font: string, axes: Record<string, number>, size: number) => {
-      const params = new URLSearchParams();
-      params.set("font", font);
-      params.set("size", String(size));
-      for (const [tag, val] of Object.entries(axes)) {
-        params.set(tag, String(val));
-      }
-      if (textColour) params.set("color", textColour);
-      if (bgColour) params.set("bg", bgColour);
-      router.replace(`/playground?${params.toString()}`, { scroll: false });
-    },
-    [router, textColour, bgColour]
-  );
-
-  const handleAxisChange = useCallback(
-    (tag: string, value: number) => {
-      setAxisValues((prev) => {
-        const next = { ...prev, [tag]: value };
-        syncUrl(selectedFont.name, next, fontSize);
-        return next;
-      });
-    },
-    [selectedFont.name, fontSize, syncUrl]
-  );
-
-  const handleFontChange = useCallback(
-    (name: string) => {
-      const font = getFontByName(name) ?? fonts[0];
-      setSelectedFont(font);
-      const defaults = getDefaultAxisValues(font.axes);
-      setAxisValues(defaults);
-      syncUrl(name, defaults, fontSize);
-    },
-    [fontSize, syncUrl]
-  );
-
-  const handleReset = useCallback(() => {
-    const defaults = getDefaultAxisValues(selectedFont.axes);
-    setAxisValues(defaults);
-    setFontSize(48);
-    syncUrl(selectedFont.name, defaults, 48);
-  }, [selectedFont, syncUrl]);
-
-  const cssSnippet = `font-family: "${selectedFont.name}", ${
-    selectedFont.name === "Fraunces" ? "serif" : "sans-serif"
-  };
-font-variation-settings: ${buildFontVariationSettings(
-    selectedFont.axes,
-    axisValues
-  )};
+  const cssSnippet = `font-family: ${rf.css};
+font-weight: ${rf.weight};
+font-variation-settings: ${fvsString(rf.axes)};
+font-optical-sizing: auto;
 font-size: ${fontSize}px;`;
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-          Playground
-        </h1>
-        <p className="text-muted text-sm max-w-lg">
-          Manipulate variable font axes in real time. Edit the preview text,
-          adjust sliders, and copy the CSS output.
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Playground</h1>
+        <p className="text-muted text-sm max-w-xl">
+          Tune each role&apos;s axes. The glyphs move on a spring towards every new value (or jump, if you prefer
+          reduced motion), and the settings are saved in the URL.
         </p>
       </div>
 
-      {/* Mode toggle */}
-      <div className="flex items-center gap-3">
-        {(["single", "compare"] as const).map((m) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            className={cn(
-              "px-3 py-1.5 text-sm rounded-md transition-colors capitalize",
-              mode === m
-                ? "bg-foreground text-background font-medium"
-                : "text-muted hover:text-foreground border border-border"
-            )}
-          >
-            {m === "single" ? "Single font" : "Compare"}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-1 p-1 bg-border/50 rounded-lg">
+          {ROLES.map((r) => (
+            <button
+              key={r}
+              onClick={() => setRoleParam(r)}
+              className={cn(
+                "px-3 py-1.5 text-sm rounded-md whitespace-nowrap",
+                role === r ? "bg-surface text-foreground shadow-sm font-medium" : "text-muted hover:text-foreground"
+              )}
+            >
+              {LABEL[r]}
+              <span className="ml-1.5 text-xs text-muted">{state[r].family}</span>
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-1">
+          {(["single", "compare"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={cn(
+                "px-3 py-1.5 text-sm rounded-md",
+                mode === m ? "bg-foreground text-background font-medium" : "text-muted hover:text-foreground border border-border"
+              )}
+            >
+              {m === "single" ? "Single" : "Compare"}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {mode === "compare" ? (
-        <ComparisonView />
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
-          {/* Sidebar */}
-          <aside className="flex flex-col gap-6 lg:sticky lg:top-20 lg:self-start">
-            <FontSelector
-              selected={selectedFont.name}
-              onChange={handleFontChange}
-            />
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+        <aside className="flex flex-col gap-6 lg:sticky lg:top-20 lg:self-start">
+          <FamilyPicker
+            label={`${LABEL[role]} family`}
+            value={state[role].family}
+            onChange={(f) => setRoleFamily(role, f)}
+            filter={role === "mono" ? (f) => f.mono : undefined}
+          />
+          {rf.family && catalogue ? (
             <AxisPanel
-              font={selectedFont}
-              values={axisValues}
-              onChange={handleAxisChange}
-              onReset={handleReset}
+              family={rf.family}
+              registry={catalogue.axisRegistry}
+              overrides={state[role].axes}
+              onChange={(tag, v) => setRoleAxis(role, tag, v)}
+              onReset={() => resetRoleAxes(role)}
             />
-
-            {/* Font size */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <label className="text-muted uppercase tracking-wider font-medium">
-                  Font size
-                </label>
-                <span className="tabular-nums font-medium">{fontSize}px</span>
+          ) : (
+            <p className="text-xs text-muted">Loading axes…</p>
+          )}
+          {mode === "single" && (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <label className="text-muted uppercase tracking-wider font-medium">Font size</label>
+                  <span className="tabular-nums font-medium">{fontSize}px</span>
+                </div>
+                <input type="range" min={12} max={200} value={fontSize} onChange={(e) => setSizeParam(e.target.value)} className="w-full" />
               </div>
-              <input
-                type="range"
-                min={12}
-                max={200}
-                value={fontSize}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setFontSize(v);
-                  syncUrl(selectedFont.name, axisValues, v);
-                }}
-                className="w-full"
-              />
-            </div>
+              <ColourPicker textColour={textColour} bgColour={bgColour} onTextChange={setTextColour} onBgChange={setBgColour} />
+            </>
+          )}
+          <CopyButton text={cssSnippet} />
+        </aside>
 
-            <ColourPicker
-              textColour={textColour}
-              bgColour={bgColour}
-              onTextChange={setTextColour}
-              onBgChange={setBgColour}
-            />
-
-            <CopyButton text={cssSnippet} />
-          </aside>
-
-          {/* Main */}
-          <div className="flex flex-col gap-6">
-            <FontPreview
-              font={selectedFont}
-              axisValues={axisValues}
-              fontSize={fontSize}
-              textColour={textColour || undefined}
-              bgColour={bgColour || undefined}
-            />
-            <OpticalSizeDemo font={selectedFont} axisValues={axisValues} />
-
-            {/* CSS output */}
-            <div className="border border-border rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs uppercase tracking-wider text-muted font-medium">
-                  CSS Output
-                </h4>
-                <CopyButton text={cssSnippet} />
+        <div className="flex flex-col gap-6 min-w-0">
+          {mode === "compare" ? (
+            <ComparisonView left={rf} />
+          ) : (
+            <>
+              <FontPreview font={rf} fontSize={fontSize} textColour={textColour || undefined} bgColour={bgColour || undefined} />
+              <OpticalSizeDemo font={rf} family={rf.family} />
+              <div className="border border-border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-xs uppercase tracking-wider text-muted font-medium">CSS</h4>
+                  <CopyButton text={cssSnippet} />
+                </div>
+                <pre className="text-sm font-mono text-foreground/80 whitespace-pre-wrap">{cssSnippet}</pre>
               </div>
-              <pre className="text-sm font-mono text-foreground/80 whitespace-pre-wrap">
-                {cssSnippet}
-              </pre>
-            </div>
-          </div>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
