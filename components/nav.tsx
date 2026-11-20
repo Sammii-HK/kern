@@ -25,17 +25,18 @@ export function Nav() {
   const query = systemQuery(new URLSearchParams(searchParams.toString()));
 
   return (
-    <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-6 min-w-0">
-          <Link href={`/${query}`} className="text-lg font-semibold tracking-tight shrink-0">
+    <nav aria-label="Primary navigation" className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
+      <div className="type-lab-nav max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+        <div className="type-lab-primary flex items-center gap-6 min-w-0">
+          <Link href={`/${query}`} className="type-lab-brand text-lg font-semibold tracking-tight shrink-0">
             Type Lab
           </Link>
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+          <div className="type-lab-links flex items-center gap-1 overflow-x-auto scrollbar-none">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={`${link.href}${query}`}
+                aria-current={pathname === link.href ? "page" : undefined}
                 className={cn(
                   "px-3 py-1.5 text-sm rounded-md transition-colors whitespace-nowrap",
                   pathname === link.href
@@ -48,7 +49,7 @@ export function Nav() {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="type-lab-tools flex items-center gap-3 shrink-0">
           <div
             className="hidden lg:flex items-baseline gap-2 text-sm text-muted"
             aria-label="Current system"

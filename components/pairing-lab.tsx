@@ -86,7 +86,7 @@ export function PairingLab() {
                   className="text-left text-xs px-2 py-1.5 rounded hover:bg-surface border border-transparent hover:border-border"
                 >
                   <span className="font-medium">{p.heading}</span>
-                  <span className="text-muted"> + {p.body}{p.mono ? ` + ${p.mono}` : ""}</span>
+                  <span className="text-muted"> with {p.body}{p.mono ? ` and ${p.mono}` : ""}</span>
                 </button>
               ))}
             </div>

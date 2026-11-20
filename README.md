@@ -5,9 +5,12 @@ The repository, package and deployment keep the name `kern` (kern.sammii.dev).
 A lab for designing and testing type systems with Google Fonts: browse every family by its real axes, pair a heading, body and mono face, build a fluid scale, see it in real interface previews, and export it as CSS, Tailwind v4, W3C design tokens or a font `<link>`.
 
 ```bash
-npm install
+nvm use           # Node 24
+npm ci
 npm run dev        # http://localhost:3000
-npm test           # unit tests (Vitest)
+npm test           # icon regressions and unit tests (Vitest)
+npm run lint      # source icon gate and ESLint
+npm run typecheck # strict TypeScript
 npm run test:e2e   # Playwright smoke tests (uses your installed Chrome)
 ```
 
@@ -35,3 +38,7 @@ The whole system (families, axis values, scale, heading step) is in the query st
 **Scale.** `lib/scale.ts`: each step is `base × ratio^n` at both viewports, interpolated with `clamp()`. Leading is size plus half the base (body 1.5, display towards 1.1); tracking tightens 0.02em per doubling. Numbers stay unrounded until output.
 
 **Motion.** `hooks/use-spring-variations.ts` integrates a damped spring per axis on `requestAnimationFrame` and writes `font-variation-settings` straight to the element. With `prefers-reduced-motion` the glyphs jump.
+
+## Local verification
+
+See [the 20 November quality receipt](docs/quality/type-lab-20261120.md) for the tested build, dependency changes, browser checks and their limits.

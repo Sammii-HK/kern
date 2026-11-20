@@ -10,8 +10,8 @@ test("search, pair and export a type system", async ({ page }) => {
   const detail = page.getByTestId("family-detail");
   await expect(detail).toContainText("Newsreader");
   // Axis controls come from the metadata: Newsreader has opsz and wght.
-  await expect(detail.locator("#axis-wght")).toBeVisible();
-  await expect(detail.locator("#axis-opsz")).toBeAttached();
+  await expect(detail.locator('input[data-axis="wght"]')).toBeVisible();
+  await expect(detail.locator('input[data-axis="opsz"]')).toBeAttached();
   await page.getByTestId("assign-heading").click();
   await expect(page).toHaveURL(/h=Newsreader/);
 

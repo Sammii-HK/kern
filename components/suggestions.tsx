@@ -80,7 +80,7 @@ export function Suggestions({ target, anchor, current, onUse }: SuggestionsProps
                 <FontThumb family={s.family.family} className="text-lg truncate" />
                 {xHeights[s.family.family] && (
                   <span className="text-[10px] text-muted tabular-nums shrink-0">
-                    x {xHeights[s.family.family].toFixed(3)}em
+                    x-height {xHeights[s.family.family].toFixed(3)}em
                   </span>
                 )}
               </div>
