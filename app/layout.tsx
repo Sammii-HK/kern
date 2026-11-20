@@ -12,10 +12,16 @@ const inter = Inter({
   axes: ["opsz"],
 });
 
+const title = "Type Lab: design and test type systems";
+const description =
+  "Browse Google Fonts by axis, pair a heading, body and mono, build a fluid scale and export it as CSS, Tailwind or design tokens.";
+
 export const metadata: Metadata = {
-  title: "Kern: design and test type systems",
-  description:
-    "Browse Google Fonts by axis, pair a heading, body and mono, build a fluid scale and export it as CSS, Tailwind or design tokens.",
+  title,
+  description,
+  applicationName: "Type Lab",
+  openGraph: { title, description, siteName: "Type Lab", type: "website" },
+  twitter: { card: "summary", title, description },
 };
 
 export default function RootLayout({

@@ -169,7 +169,7 @@ function Form({ t }: { t: T }) {
       </label>
       <label className="flex flex-col gap-1.5">
         <span style={t(-1)} className="font-medium">API key</span>
-        <input className={field} style={{ ...t(-1), fontFamily: "var(--font-mono)" }} defaultValue="kern_live_4f9a…c21" readOnly />
+        <input className={field} style={{ ...t(-1), fontFamily: "var(--font-mono)" }} defaultValue="tl_live_4f9a…c21" readOnly />
       </label>
       <label className="flex items-center gap-2" style={t(-1)}>
         <input type="checkbox" defaultChecked /> Send me product updates

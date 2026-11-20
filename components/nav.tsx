@@ -29,7 +29,7 @@ export function Nav() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
         <div className="flex items-center gap-6 min-w-0">
           <Link href={`/${query}`} className="text-lg font-semibold tracking-tight shrink-0">
-            kern
+            Type Lab
           </Link>
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
             {links.map((link) => (

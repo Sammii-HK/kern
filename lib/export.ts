@@ -257,7 +257,7 @@ export function exportDtcg(input: ExportInput): string {
   }
 
   const tokens = {
-    $description: "Type system exported from Kern",
+    $description: "Type system exported from Type Lab",
     font: { family, weight },
     viewport,
     typography,

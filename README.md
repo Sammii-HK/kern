@@ -1,4 +1,6 @@
-# Kern
+# Type Lab
+
+The repository, package and deployment keep the name `kern` (kern.sammii.dev).
 
 A lab for designing and testing type systems with Google Fonts: browse every family by its real axes, pair a heading, body and mono face, build a fluid scale, see it in real interface previews, and export it as CSS, Tailwind v4, W3C design tokens or a font `<link>`.
 
