@@ -38,7 +38,7 @@ export function FamilyDetail({ family, registry }: { family: Family; registry: R
         as="div"
         axes={axes}
         contentEditable
-        className={cn("text-5xl leading-[1.1] outline-none break-words transition-opacity", status !== "ready" && "opacity-40")}
+        className={cn("text-5xl leading-[1.1] outline-none break-words", status !== "ready" && "opacity-40")}
         style={{ fontFamily: css, fontWeight: roleWeight(family, overrides) }}
       >
         Hamburgefonstiv

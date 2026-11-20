@@ -12,20 +12,33 @@ let memo: { at: number; catalogue: Catalogue } | null = null;
 
 const bundled = snapshot as Catalogue;
 
+let inflight: Promise<Catalogue> | null = null;
+
+function refresh(): Promise<Catalogue> {
+  inflight ??= (async () => {
+    const catalogue = (await tryMetadata()) ?? (await tryDeveloperApi()) ?? bundled;
+    if (catalogue !== bundled) memo = { at: Date.now(), catalogue };
+    inflight = null;
+    return catalogue;
+  })();
+  return inflight;
+}
+
 /**
  * Returns the slimmed catalogue. The metadata response is about 2.7MB and sent
  * `no-store`, which is over Next's 2MB fetch-cache limit, so the raw response
  * is never cached: only the slimmed copy, in memory here and at the edge via
  * the route's Cache-Control header.
+ *
+ * A cold upstream fetch can take several seconds. Rather than keep the first
+ * visitor waiting, answer with the bundled snapshot after `patienceMs` and let
+ * the live fetch finish into the cache for the next request.
  */
-export async function getCatalogue(): Promise<Catalogue> {
+export async function getCatalogue(patienceMs = 2500): Promise<Catalogue> {
   if (process.env.KERN_FONTS_SOURCE === "snapshot") return bundled;
   if (memo && Date.now() - memo.at < TTL_MS) return memo.catalogue;
-
-  const catalogue =
-    (await tryMetadata()) ?? (await tryDeveloperApi()) ?? bundled;
-  if (catalogue !== bundled) memo = { at: Date.now(), catalogue };
-  return catalogue;
+  const timeout = new Promise<null>((r) => setTimeout(() => r(null), patienceMs));
+  return (await Promise.race([refresh(), timeout])) ?? bundled;
 }
 
 async function tryMetadata(): Promise<Catalogue | null> {

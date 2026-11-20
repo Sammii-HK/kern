@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { fvsString } from "@/lib/axes";
 import { fallbackFaceCss, type FontMetrics } from "@/lib/metrics";
 import { ROLES, type Role } from "@/lib/lab-state";
 import type { RoleFont } from "@/hooks/use-role-fonts";
@@ -11,41 +12,57 @@ import { cn } from "@/lib/utils";
 const LABEL: Record<Role, string> = { heading: "Heading", body: "Body", mono: "Mono" };
 const SIZE = 88;
 
-/** Glyphs set at the same size with their measured x-height and cap height drawn in. */
-function MetricGlyphs({ rf, m }: { rf: RoleFont; m?: FontMetrics }) {
-  const baseline = SIZE * 1.05;
+/**
+ * Glyphs set at the same size with their measured x-height and cap height
+ * drawn in. The baseline is found from a zero-size inline-block, whose bottom
+ * edge sits on it. opsz is pinned to the size the metrics were measured at,
+ * so the drawing shows the same cut as the numbers.
+ */
+function MetricGlyphs({ rf, m, measuredAt }: { rf: RoleFont; m?: FontMetrics; measuredAt: number }) {
+  const marker = useRef<HTMLSpanElement>(null);
+  const [baseline, setBaseline] = useState<number | null>(null);
+  const opsz = rf.family?.axes.find((a) => a.tag === "opsz");
+  const axes = opsz ? { ...rf.axes, opsz: Math.min(opsz.max, Math.max(opsz.min, measuredAt)) } : rf.axes;
+
+  useLayoutEffect(() => {
+    const el = marker.current;
+    if (!el) return;
+    const measure = () => setBaseline(el.offsetTop);
+    measure();
+    document.fonts.ready.then(measure);
+  }, [rf.css, rf.status, m]);
+
   return (
-    <div className="relative" style={{ height: SIZE * 1.3 }}>
-      {m && (
+    <div className="relative">
+      {m && baseline !== null && (
         <>
           <Guide y={baseline - m.capHeight * SIZE} label={`cap ${m.capHeight.toFixed(3)}`} />
           <Guide y={baseline - m.xHeight * SIZE} label={`x ${m.xHeight.toFixed(3)}`} accent />
           <Guide y={baseline} label="baseline" />
         </>
       )}
-      <span
-        className="absolute left-0 whitespace-nowrap"
+      <div
+        className="whitespace-nowrap"
         style={{
           fontFamily: rf.css,
           fontWeight: rf.weight,
-          fontVariationSettings: rf.fvs,
+          fontVariationSettings: fvsString(axes),
           fontSize: SIZE,
-          lineHeight: 1,
-          // Place the baseline on the guide: the line box puts it at the ascent.
-          top: m ? baseline - (m.ascent || 0.9) * SIZE - ((1 - (m.ascent + m.descent || 1)) * SIZE) / 2 : 0,
+          lineHeight: 1.25,
         }}
       >
         Hxg
-      </span>
+        <span ref={marker} className="inline-block w-0 h-0 align-baseline" />
+      </div>
     </div>
   );
 }
 
 function Guide({ y, label, accent }: { y: number; label: string; accent?: boolean }) {
   return (
-    <div className="absolute inset-x-0 flex items-center" style={{ top: y }}>
-      <div className={cn("flex-1 border-t", accent ? "border-accent" : "border-border")} />
-      <span className="text-[9px] text-muted ml-1 tabular-nums -translate-y-1/2">{label}</span>
+    <div className="absolute inset-x-0 pointer-events-none" style={{ top: y }}>
+      <div className={cn("border-t", accent ? "border-accent" : "border-foreground/25")} />
+      <span className="absolute right-0 bottom-0.5 text-[9px] text-muted tabular-nums bg-background/70 px-0.5">{label}</span>
     </div>
   );
 }
@@ -95,7 +112,15 @@ function FallbackOverlay({ rf, css }: { rf: RoleFont; css: string; }) {
   );
 }
 
-export function MetricsPanel({ roles, metrics }: { roles: Record<Role, RoleFont>; metrics: RoleMetrics }) {
+export function MetricsPanel({
+  roles,
+  metrics,
+  sizes,
+}: {
+  roles: Record<Role, RoleFont>;
+  metrics: RoleMetrics;
+  sizes: Record<Role, number>;
+}) {
   const [role, setRole] = useState<Role>("body");
   const m = metrics.metrics;
   const fb = metrics.fallbacks[role];
@@ -110,10 +135,10 @@ export function MetricsPanel({ roles, metrics }: { roles: Record<Role, RoleFont>
               <span className="font-medium">{LABEL[r]}</span>
               <span className="text-muted truncate ml-2">{roles[r].name}</span>
             </div>
-            <MetricGlyphs rf={roles[r]} m={m[r]} />
+            <MetricGlyphs rf={roles[r]} m={m[r]} measuredAt={sizes[r]} />
             <p className="text-[11px] text-muted tabular-nums">
               {m[r]
-                ? `x-height ${m[r]!.xHeight.toFixed(3)}em · cap ${m[r]!.capHeight.toFixed(3)}em · x/cap ${(m[r]!.xHeight / m[r]!.capHeight).toFixed(2)}`
+                ? `x-height ${m[r]!.xHeight.toFixed(3)}em · cap ${m[r]!.capHeight.toFixed(3)}em · measured at ${sizes[r]}px`
                 : roles[r].status === "error" ? "Could not load this family." : "Measuring once the font loads…"}
             </p>
           </div>

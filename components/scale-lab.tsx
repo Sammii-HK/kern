@@ -159,7 +159,7 @@ export function ScaleLab() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-8 items-start">
         <aside className="flex flex-col gap-5 lg:sticky lg:top-20">
           <section className="flex flex-col gap-3">
             <h3 className="text-sm font-semibold">Smallest viewport</h3>

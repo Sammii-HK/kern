@@ -92,7 +92,7 @@ export function Browser() {
           {catalogue
             ? `${catalogue.families.length.toLocaleString("en-GB")} Google Fonts families, ${variableCount} of them variable. Axis controls are generated from each family's metadata.`
             : "Loading the Google Fonts catalogue…"}
-          {catalogue?.source === "snapshot" && " (Showing the bundled snapshot: the live catalogue is unavailable.)"}
+          {catalogue?.source === "snapshot" && " Showing the bundled snapshot while the live catalogue loads."}
         </p>
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>

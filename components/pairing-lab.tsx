@@ -22,7 +22,8 @@ export function PairingLab() {
   const { state, update, setRoleFamily } = useLab();
   const { byName } = useCatalogue();
   const roles = useRoleFonts(state);
-  const metrics = useRoleMetrics(roles, roleSizes(state));
+  const sizes = roleSizes(state);
+  const metrics = useRoleMetrics(roles, sizes);
   const [tab, setTab] = useState<Tab>("body");
 
   const steps = useMemo(() => generateScale(state.scale), [state.scale]);
@@ -41,7 +42,7 @@ export function PairingLab() {
         </p>
       </div>
 
-      <section className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8 items-start">
+      <section className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-8 items-start">
         <div className="flex flex-col gap-5">
           <FamilyPicker label="Heading" value={state.heading.family} onChange={(f) => setRoleFamily("heading", f)} testId="picker-heading" />
           <FamilyPicker label="Body" value={state.body.family} onChange={(f) => setRoleFamily("body", f)} testId="picker-body" />
@@ -99,11 +100,12 @@ export function PairingLab() {
         <div className="flex flex-col gap-1">
           <h2 className="text-xl font-semibold tracking-tight">Measured metrics</h2>
           <p className="text-sm text-muted max-w-2xl">
-            Read from the loaded fonts with canvas text metrics. They drive the mono size match and the fallback
-            faces that cut layout shift while the web fonts load.
+            Read from the loaded fonts with canvas text metrics, each at the size the role is used (body at the
+            base, headings two steps up), so optical-size families report the cut you will actually see. They
+            drive the mono size match and the fallback faces that cut layout shift while the web fonts load.
           </p>
         </div>
-        <MetricsPanel roles={roles} metrics={metrics} />
+        <MetricsPanel roles={roles} metrics={metrics} sizes={sizes} />
       </section>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useParam } from "@/hooks/use-lab";
 import type { Role } from "@/lib/lab-state";
 import { monoStyle, textStyle } from "@/lib/system-style";
@@ -201,9 +201,23 @@ export function UiPreviews({ style, stepRange }: { style: CSSProperties; stepRan
   // Ask for a step the scale may not have and get the nearest one it does.
   const t: T = (step, role = "body") => textStyle(Math.min(hi, Math.max(lo, step)), role);
   const Active = (PREVIEWS[tab as keyof typeof PREVIEWS] ?? PREVIEWS.article).Component;
+  const frameWidth = Number(width) || 768;
+
+  // Wider frames are zoomed out to fit, keeping their layout width (and so
+  // their cqi sizes) intact: what you see is the page at that width.
+  const outer = useRef<HTMLDivElement>(null);
+  const [available, setAvailable] = useState(frameWidth);
+  useEffect(() => {
+    const el = outer.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setAvailable(el.clientWidth));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const zoom = Math.min(1, available / frameWidth);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 min-w-0">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex gap-1" role="tablist">
           {Object.entries(PREVIEWS).map(([id, p]) => (
@@ -218,7 +232,8 @@ export function UiPreviews({ style, stepRange }: { style: CSSProperties; stepRan
             </button>
           ))}
         </div>
-        <div className="flex gap-1 text-xs">
+        <div className="flex items-center gap-1 text-xs">
+          {zoom < 1 && <span className="text-muted mr-1 tabular-nums">shown at {Math.round(zoom * 100)}%</span>}
           {WIDTHS.map((w) => (
             <button
               key={w.id}
@@ -230,10 +245,10 @@ export function UiPreviews({ style, stepRange }: { style: CSSProperties; stepRan
           ))}
         </div>
       </div>
-      <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+      <div ref={outer} className="overflow-hidden rounded-lg border border-border bg-surface">
         <div
-          className="preview-frame mx-auto p-6 sm:p-8"
-          style={{ ...style, width: Number(width), maxWidth: "none" }}
+          className="preview-frame mx-auto p-8"
+          style={{ ...style, width: frameWidth, maxWidth: "none", zoom }}
           data-testid="ui-preview"
         >
           <Active t={t} />
