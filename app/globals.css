@@ -1,13 +1,5 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: "Fraunces";
-  src: url("/fonts/Fraunces-Variable.woff2") format("truetype");
-  font-weight: 100 900;
-  font-display: swap;
-  font-style: normal;
-}
-
 :root {
   --background: #fafaf9;
   --foreground: #1c1917;
@@ -37,7 +29,6 @@
   --color-accent: var(--accent);
   --color-accent-muted: var(--accent-muted);
   --font-sans: var(--font-inter);
-  --font-serif: "Fraunces", serif;
 }
 
 body {
@@ -54,7 +45,7 @@ input[type="range"] {
   cursor: pointer;
 }
 
-input[type="range"]::-webkit-slider-track {
+input[type="range"]::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 2px;
   background: var(--border);
@@ -77,6 +68,32 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 input[type="range"]::-webkit-slider-thumb:active {
   transform: scale(0.95);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--foreground);
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Previews size their type against their own width (cqi), not the window. */
+.preview-frame {
+  container-type: inline-size;
 }
 
 /* Contenteditable placeholder */

@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Type Lab
 
-## Getting Started
+The repository, package and deployment keep the name `kern` (kern.sammii.dev).
 
-First, run the development server:
+A lab for designing and testing type systems with Google Fonts: browse every family by its real axes, pair a heading, body and mono face, build a fluid scale, see it in real interface previews, and export it as CSS, Tailwind v4, W3C design tokens or a font `<link>`.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
+npm test           # unit tests (Vitest)
+npm run test:e2e   # Playwright smoke tests (uses your installed Chrome)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Pages
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Route | What it does |
+| --- | --- |
+| `/` Browse | Search about 1,840 Latin families; filter by category, variable and has-opsz. Picking one loads it in full with axis sliders generated from its metadata. |
+| `/pairing` | Heading, body and mono roles. Suggestions weigh category contrast, a curated list and measured x-heights, and explain themselves. Article, dashboard, pricing and form previews in the chosen system. Measured metrics and size-matched fallbacks. |
+| `/type-scale` | Utopia-style fluid scale: a base and ratio for each viewport, per-step leading, tracking and opsz. |
+| `/playground` | Tune each role's axes; glyphs move on a spring. Compare against any other family with linked axes. |
+| `/specimen` | Specimen sheet for each role. |
+| `/export` | CSS variables and step classes, Tailwind v4 `@theme`, DTCG tokens JSON, Google Fonts `<link>`. |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The whole system (families, axis values, scale, heading step) is in the query string, and nav links carry it between pages, so any URL reproduces the state exactly.
 
-## Learn More
+## How it works
 
-To learn more about Next.js, take a look at the following resources:
+**Catalogue.** `app/api/fonts` proxies `https://fonts.google.com/metadata/fonts` (no key, no CORS, about 2.7MB, `no-store`), slims it to about 300KB (`lib/catalogue/slim.ts`) and caches the slim copy in memory and at the CDN. If the endpoint fails it tries the official Developer API, using `GOOGLE_FONTS_API_KEY` from the server environment, then the bundled `data/fonts-snapshot.json`. Set `KERN_FONTS_SOURCE=snapshot` to skip the network (the e2e tests do). Refresh the snapshot with `npx tsx scripts/build-snapshot.ts`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Loading.** Fonts load on demand through the css2 API with their axis ranges (`lib/css2.ts`, `lib/font-loader.ts`). Thumbnails fetch a `text=` subset and register it under an alias with the FontFace API, so a static subset never shadows the variable face.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Metrics.** `lib/metrics.ts` measures x-height, cap height, ascent, descent and letter-frequency-weighted average width with canvas, at the size each role is used. Fallbacks follow the next/font and Capsize approach: `size-adjust` from average width, then ascent and descent overrides divided by it.
 
-## Deploy on Vercel
+**Scale.** `lib/scale.ts`: each step is `base × ratio^n` at both viewports, interpolated with `clamp()`. Leading is size plus half the base (body 1.5, display towards 1.1); tracking tightens 0.02em per doubling. Numbers stay unrounded until output.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Motion.** `hooks/use-spring-variations.ts` integrates a damped spring per axis on `requestAnimationFrame` and writes `font-variation-settings` straight to the element. With `prefers-reduced-motion` the glyphs jump.
