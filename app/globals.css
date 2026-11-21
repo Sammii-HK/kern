@@ -114,17 +114,25 @@ input[type="range"]::-moz-range-thumb {
   padding: 2rem;
 }
 
-/* Keep controls reachable while retaining the fine visual slider track. */
-button,
-select,
-input[type="range"],
-input[type="search"] {
+/* Keep the app's own controls reachable while retaining the fine visual
+   slider track. The 44px targets apply to the site chrome and control panels
+   only: anything inside a .preview-frame is a scaled specimen of someone
+   else's page, so its mock buttons and fields keep the sizes the type system
+   gives them. */
+:is(
+    button,
+    select,
+    input[type="range"],
+    input[type="search"],
+    input[role="combobox"],
+    input[type="number"]
+  ):not(.preview-frame *) {
   min-height: 44px;
 }
-button {
+button:not(.preview-frame *) {
   min-width: 44px;
 }
-nav a {
+nav a:not(.preview-frame *) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -133,11 +141,6 @@ nav a {
 [contenteditable="true"]:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
-}
-
-input[role="combobox"],
-input[type="number"] {
-  min-height: 44px;
 }
 @media (max-width: 639px) {
   .type-lab-nav {
