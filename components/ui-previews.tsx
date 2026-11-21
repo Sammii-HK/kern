@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Check } from "lucide-react";
 import { useParam } from "@/hooks/use-lab";
 import type { Role } from "@/lib/lab-state";
 import { monoStyle, textStyle } from "@/lib/system-style";
@@ -137,7 +138,7 @@ function Pricing({ t }: { t: T }) {
             <p style={t(-1)} className="opacity-70">{p.note}</p>
             <ul className="flex flex-col gap-1.5" style={t(-1)}>
               {p.features.map((f) => (
-                <li key={f}>✓ {f}</li>
+                <li key={f} className="flex items-start gap-2"><Check size={16} className="mt-0.5 shrink-0" aria-hidden />{f}</li>
               ))}
             </ul>
             <button style={t(0)} className={cn("rounded-md px-4 py-2 mt-auto", p.featured ? "bg-foreground text-background" : "border border-border")}>

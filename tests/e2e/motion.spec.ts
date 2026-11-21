@@ -3,9 +3,9 @@ import { expect, test, type Page } from "@playwright/test";
 /** Moves the heading's wght slider to 900 and samples the preview's settings. */
 async function dragWeight(page: Page) {
   await page.goto("/playground");
-  await expect(page.locator("#axis-wght")).toBeVisible();
+  await expect(page.locator('input[data-axis="wght"]').first()).toBeVisible();
   return page.evaluate(async () => {
-    const input = document.getElementById("axis-wght") as HTMLInputElement;
+    const input = document.querySelector('input[data-axis="wght"]') as HTMLInputElement;
     const el = document.querySelector('[contenteditable="true"]') as HTMLElement;
     const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
     set.call(input, "900");

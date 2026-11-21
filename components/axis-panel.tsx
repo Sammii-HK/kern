@@ -72,7 +72,7 @@ export function AxisPanel({ family, registry, overrides, onChange, onReset, titl
               onChange={(v) => onChange(axis.tag, v)}
               aside={
                 isOpsz ? (
-                  <label className="flex items-center gap-1 text-[10px] text-muted cursor-pointer">
+                  <label className="flex min-h-11 min-w-11 items-center justify-center gap-1 text-[10px] text-muted cursor-pointer">
                     <input
                       type="checkbox"
                       checked={auto}

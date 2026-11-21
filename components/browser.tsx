@@ -92,7 +92,7 @@ export function Browser() {
           {catalogue
             ? `${catalogue.families.length.toLocaleString("en-GB")} Google Fonts families, ${variableCount} of them variable. Axis controls are generated from each family's metadata.`
             : "Loading the Google Fonts catalogue…"}
-          {catalogue?.source === "snapshot" && " Showing the bundled snapshot while the live catalogue loads."}
+          {catalogue?.source === "snapshot" && " Using the bundled catalogue snapshot."}
         </p>
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
@@ -161,7 +161,7 @@ export function Browser() {
                       {CATEGORIES.find((c) => c.id === f.category)?.label}
                       {f.mono && f.category !== "monospace" ? " · mono" : ""}
                     </span>
-                    <span>{f.axes.length ? `${f.axes.length} axis${f.axes.length > 1 ? "es" : ""}` : `${f.weights.length} weight${f.weights.length > 1 ? "s" : ""}`}</span>
+                    <span>{f.axes.length ? `${f.axes.length} ${f.axes.length === 1 ? "axis" : "axes"}` : `${f.weights.length} weight${f.weights.length > 1 ? "s" : ""}`}</span>
                   </div>
                   {f.axes.length > 0 && (
                     <div className="flex flex-wrap gap-1">

@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 interface AxisSliderProps {
   tag: string;
   name: string;
@@ -31,13 +33,14 @@ export function AxisSlider({
   aside,
   disabled,
 }: AxisSliderProps) {
-  const id = `axis-${tag}`;
+  const instance = useId();
+  const id = `axis-${tag}-${instance}`;
   return (
     <div className="flex flex-col gap-1.5" title={description}>
       <div className="flex items-center justify-between gap-2 text-xs">
         <label htmlFor={id} className="text-muted uppercase tracking-wider font-medium truncate">
           {name}
-          <span className="ml-1.5 text-foreground/40 normal-case tracking-normal font-mono">{tag}</span>
+          <span className="ml-1.5 text-muted normal-case tracking-normal font-mono">{tag}</span>
         </label>
         <div className="flex items-center gap-2 shrink-0">
           {aside}
@@ -48,7 +51,9 @@ export function AxisSlider({
       </div>
       <input
         id={id}
+        data-axis={tag}
         type="range"
+        aria-label={`${name} (${tag})`}
         min={min}
         max={max}
         step={step}

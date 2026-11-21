@@ -3,7 +3,7 @@
 :root {
   --background: #fafaf9;
   --foreground: #1c1917;
-  --muted: #a8a29e;
+  --muted: #6b625d;
   --border: #e7e5e4;
   --surface: #ffffff;
   --accent: #2563eb;
@@ -13,7 +13,7 @@
 .dark {
   --background: #0c0a09;
   --foreground: #e7e5e4;
-  --muted: #78716c;
+  --muted: #a8a29e;
   --border: #292524;
   --surface: #1c1917;
   --accent: #60a5fa;
@@ -112,4 +112,66 @@ input[type="range"]::-moz-range-thumb {
   border: 1px dashed var(--border);
   border-radius: 8px;
   padding: 2rem;
+}
+
+/* Keep the app's own controls reachable while retaining the fine visual
+   slider track. The 44px targets apply to the site chrome and control panels
+   only: anything inside a .preview-frame is a scaled specimen of someone
+   else's page, so its mock buttons and fields keep the sizes the type system
+   gives them. */
+:is(
+    button,
+    select,
+    input[type="range"],
+    input[type="search"],
+    input[role="combobox"],
+    input[type="number"]
+  ):not(.preview-frame *) {
+  min-height: 44px;
+}
+button:not(.preview-frame *) {
+  min-width: 44px;
+}
+nav a:not(.preview-frame *) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+[contenteditable="true"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+@media (max-width: 639px) {
+  .type-lab-nav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    height: auto;
+    row-gap: 0;
+    padding-block: 0.25rem;
+  }
+  .type-lab-primary {
+    display: contents;
+  }
+  .type-lab-brand {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+  .type-lab-tools {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .type-lab-links {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.125rem;
+    overflow: visible;
+    padding-block: 0.25rem;
+  }
+  .type-lab-links a {
+    padding-inline: 0.3rem;
+  }
 }
